@@ -35,6 +35,17 @@ const pickANewDirection = (oldDirectionKey) => {
   }
 };
 
+const randomizeDirection = (oldDirectionKey) => {
+  const keys = Object.keys(DIRECTIONS);
+  const index = keys.findIndex((key) => key === oldDirectionKey);
+  const variance = randomIntFromInterval(-1, 1);
+  const newIndex = index + variance;
+  if (newIndex === -1 || newIndex === keys.length) {
+    return keys[keys.length - 1];
+  }
+  return keys[index + variance];
+};
+
 const findNewCoordinates = (x, y, direction) => {
   return {
     x: x + DIRECTIONS[direction][0],
@@ -50,6 +61,10 @@ const grow = (branch) => {
 
   if (branch.hitObstacle) {
     newBranch.direction = pickANewDirection(branch.direction);
+  } else {
+    console.log(branch.direction);
+    newBranch.direction = randomizeDirection(branch.direction);
+    console.log(newBranch.direction, newBranch);
   }
 
   const newCoordinates = findNewCoordinates(
@@ -180,6 +195,8 @@ const createSeeds = () => {
         id: i,
         x: startX,
         y: 0,
+        attempts: 0,
+        hitObstacle: false,
         direction: "UP",
         color: "#964B00",
       };
