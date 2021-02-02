@@ -12,13 +12,13 @@ const areBranchesAbove = (x, y) => {
     return false;
   }
 
-  return Boolean(OCCUPIED_X.find((coordinate) => coordinate > y));
+  return Boolean(OCCUPIED_X[x].find((coordinate) => coordinate > y));
 };
 
 const findDirectionsTowardTheSun = (x, y) => {
-  const canGoUp = areBranchesAbove(x, y);
-  const canGoRight = areBranchesAbove(x + 1, y);
-  const canGoLeft = areBranchesAbove(x - 1, y);
+  const canGoUp = !areBranchesAbove(x, y);
+  const canGoRight = !areBranchesAbove(x + 1, y);
+  const canGoLeft = !areBranchesAbove(x - 1, y);
 
   const availableDirections = [];
 
@@ -92,17 +92,6 @@ const DIRECTIONS = {
   RIGHT: [SEED_SIZE, 0],
 };
 
-const pickANewDirection = (oldDirectionKey) => {
-  const keys = Object.keys(DIRECTIONS);
-  const randomInt = randomIntFromInterval(0, keys.length - 1);
-  const randomKey = keys[randomInt];
-  if (oldDirectionKey === randomKey) {
-    return pickANewDirection(oldDirectionKey);
-  } else {
-    return randomKey;
-  }
-};
-
 const findNewCoordinates = (x, y, direction) => {
   return {
     x: x + DIRECTIONS[direction][0],
@@ -125,7 +114,7 @@ const grow = (branch) => {
     newBranch.direction
   );
 
-  const isOccupied = isSpaceOccupied(newCoordinates.x, newCoordinates.y);
+  // const isOccupied = isSpaceOccupied(newCoordinates.x, newCoordinates.y);
 
   // if (isOccupied) {
   //   return null;
