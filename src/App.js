@@ -14,8 +14,6 @@ const SEED_SIZE = 1;
 const CANVAS_WIDTH = 1000;
 const CANVAS_HEIGHT = 600;
 const BRANCH_PROBABILITY = 6;
-const LATERAL_GROWTH_PROBABILITY = 2;
-const DIRECTION_CHANGE_PROBABILITY = 6;
 const DIRECTIONS = {
   UP: [0, SEED_SIZE],
   UPLEFT: [-SEED_SIZE, SEED_SIZE],
@@ -123,50 +121,8 @@ function getRandomColor(color) {
   return result;
 }
 
-const randomDirection = () => {
-  return DIRECTIONS[Object.keys(DIRECTIONS)[randomIntFromInterval(-1, 1)]];
-};
-
 const shouldBranch = () => {
   return randomIntFromInterval(1, BRANCH_PROBABILITY) === 1;
-};
-
-const shouldBranchRight = () => {
-  return randomIntFromInterval(1, 2) === 1;
-};
-
-const growthAmount = () => {
-  return randomIntFromInterval(-1, 1);
-};
-
-const shouldGrowLaterally = () => {
-  return randomIntFromInterval(1, LATERAL_GROWTH_PROBABILITY) === 1;
-};
-
-const shouldChangeDirection = () => {
-  return randomIntFromInterval(1, DIRECTION_CHANGE_PROBABILITY) === 1;
-};
-
-const calculateNextX = (branch) => {
-  const newBranch = { ...branch };
-  if (shouldChangeDirection()) {
-    newBranch.xDirection = randomDirection();
-  }
-
-  newBranch.x = branch.x + branch.xDirection;
-
-  return newBranch;
-};
-
-const calculateNextY = (branch) => {
-  const newBranch = { ...branch };
-  if (shouldChangeDirection()) {
-    newBranch.yDirection = randomDirection();
-  }
-
-  newBranch.y = branch.y + branch.yDirection;
-
-  return newBranch;
 };
 
 const generateStartXPoint = (existing) => {
