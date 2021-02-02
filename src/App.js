@@ -1,6 +1,7 @@
 import logo from "./logo.svg";
 import "./App.css";
 import { useEffect, useRef, useState } from "react";
+import { growAllTrees, drawTrees } from "./tree";
 
 function randomIntFromInterval(min, max) {
   // min and max included
@@ -107,7 +108,7 @@ export const pickDirection = (x, y) => {
 
 const OCCUPIED_X = {};
 
-const NUMBER_OF_SEEDS = 6;
+const NUMBER_OF_SEEDS = 1;
 const SEED_SIZE = 1;
 const CANVAS_WIDTH = 1000;
 const CANVAS_HEIGHT = 600;
@@ -219,10 +220,9 @@ const createSeeds = () => {
         id: i,
         x: startX,
         y: 0,
-        attempts: 0,
-        hitObstacle: false,
-        direction: "UP",
         color: "#964B00",
+        height: 0,
+        width: SEED_SIZE,
       };
     });
 };
@@ -251,7 +251,7 @@ const Canvas = (props) => {
   const canvasRef = useRef(null);
   const seeds = createSeeds();
   const [isPaused, setPaused] = useState(false);
-  let branches = [];
+  let trees = [];
   let interval = null;
 
   const pause = () => {
@@ -267,11 +267,14 @@ const Canvas = (props) => {
 
   const startGame = (canvas) => {
     interval = setInterval(() => {
-      const newBranches = growAllBranches(branches);
+      // const newBranches = growAllBranches(branches);
 
-      drawBranches(canvas, newBranches);
+      // drawBranches(canvas, newBranches);
 
-      branches = newBranches;
+      // branches = newBranches;
+
+      trees = growAllTrees(trees);
+      drawTrees(trees, canvas);
     }, 100);
   };
 
@@ -289,7 +292,7 @@ const Canvas = (props) => {
       );
     });
 
-    branches = seeds;
+    trees = seeds;
 
     startGame(canvas);
   }, []);
