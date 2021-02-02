@@ -45,6 +45,24 @@ const findUnoccupiedDirections = (x, y, directions) => {
   });
 };
 
+const isSurroundingSpaceOccupied = (x, y) => {
+  const surroundingPoints = Object.keys(DIRECTIONS).map((direction) => {
+    if (isSpaceOccupied(findNewCoordinates(x, y, direction))) {
+      return true;
+    } else {
+      return false;
+    }
+  });
+
+  return surroundingPoints.filter(Boolean).length > 0;
+};
+
+const findUnclaustrophobicDirections = (x, y, directions) => {
+  return directions.filter((direction) => {
+    return !isSurroundingSpaceOccupied(findNewCoordinates(x, y, direction));
+  });
+};
+
 const pickRandomItemFromArray = (array) => {
   return array[randomIntFromInterval(0, array.length - 1)];
 };
@@ -65,6 +83,16 @@ export const pickDirection = (x, y) => {
   if (unoccupiedDirections.length === 0) {
     return null;
   }
+
+  // const unclaustrophobicDirections = findUnclaustrophobicDirections(
+  //   x,
+  //   y,
+  //   unoccupiedDirections
+  // );
+
+  // if (unclaustrophobicDirections.length === 0) {
+  //   return null;
+  // }
 
   const diagonalDirections = unoccupiedDirections.filter(
     (direction) => direction === "UPLEFT" || direction === "UPRIGHT"
@@ -244,7 +272,7 @@ const Canvas = (props) => {
       drawBranches(canvas, newBranches);
 
       branches = newBranches;
-    }, 1000);
+    }, 100);
   };
 
   useEffect(() => {
