@@ -7,6 +7,81 @@ function randomIntFromInterval(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
+const areBranchesAbove = (x, y) => {
+  if (!OCCUPIED_X[x]) {
+    return false;
+  }
+
+  return Boolean(OCCUPIED_X.find((coordinate) => coordinate > y));
+};
+
+const directionsTowardTheSun = (x, y) => {
+  const canGoUp = areBranchesAbove(x, y);
+  const canGoRight = areBranchesAbove(x + 1, y);
+  const canGoLeft = areBranchesAbove(x - 1, y);
+
+  const availableDirections = [];
+
+  if (canGoUp) {
+    availableDirections.push("UP");
+  }
+
+  if (canGoLeft) {
+    availableDirections.push("UPLEFT");
+    availableDirections.push("LEFT");
+  }
+
+  if (canGoRight) {
+    availableDirections.push("UPRIGHT");
+    availableDirections.push("RIGHT");
+  }
+
+  return availableDirections;
+};
+
+const pickRandomItemFromArray = (array) => {
+  return array[randomIntFromInterval(0, array.length - 1)];
+};
+
+const findClosestDirections = (direction) => {
+  const keys = Object.keys(DIRECTIONS);
+  const index = keys.findIndex((key) => key === direction);
+  if (index === keys.length - 1) {
+    return [keys[index - 1], keys[index], keys[0]];
+  }
+
+  if (index === 0) {
+    return [keys[keys.length - 1], keys[index], keys[1]];
+  }
+
+  return [keys[index - 1], keys[index], keys[index + 1]];
+};
+
+const pickDirection = (x, y, direction) => {
+  const bestChoices = findClosestDirections(direction);
+
+  console.log(bestChoices, direction)
+
+  const availableBestChoices = bestChoices.filter((choice) =>
+    !areBranchesAbove(findNewCoordinates(x, y, choice))
+  );
+
+
+  if (availableBestChoices.length > 0) {
+    return pickRandomItemFromArray(availableBestChoices);
+  } else {
+    const remainingChoices = Object.keys(DIRECTIONS).filter(
+      (key) => !Boolean(bestChoices.find((choice) => choice === key))
+    );
+
+    if (remainingChoices.length > 0) {
+      return pickRandomItemFromArray(remainingChoices);
+    }
+
+    return false;
+  }
+};
+
 const OCCUPIED_X = {};
 
 const NUMBER_OF_SEEDS = 6;
@@ -53,38 +128,31 @@ const findNewCoordinates = (x, y, direction) => {
 
 const grow = (branch) => {
   const newBranch = { ...branch };
-  if (branch.attempts > 2) {
-    return null;
-  }
 
-  if (branch.hitObstacle) {
-    newBranch.direction = pickANewDirection(branch.direction);
-  } else {
-    console.log(branch.direction);
-    newBranch.direction = randomizeDirection(branch.direction);
-    console.log(newBranch.direction, newBranch);
+  newBranch.direction = pickDirection(branch.x, branch.y, branch.direction);
+
+  if (!newBranch.direction) {
+    return null;
   }
 
   const newCoordinates = findNewCoordinates(
     branch.x,
     branch.y,
-    branch.direction
+    newBranch.direction
   );
 
-  const isOccupied = checkForOccupation(newCoordinates.x, newCoordinates.y);
+  // const isOccupied = checkForOccupation(newCoordinates.x, newCoordinates.y);
 
-  if (isOccupied) {
-    newBranch.attempts = branch.attempts + 1;
-    newBranch.hitObstacle = true;
-    return grow(newBranch);
-  } else {
-    noteOccupation(newCoordinates.x, newCoordinates.y);
-    newBranch.hitObstacle = false;
-    newBranch.attempts = 0;
-    newBranch.x = newCoordinates.x;
-    newBranch.y = newCoordinates.y;
-    return newBranch;
-  }
+  // if (isOccupied) {
+  //   newBranch.attempts = branch.attempts + 1;
+  //   newBranch.hitObstacle = true;
+  //   return grow(newBranch);
+  // } else {
+  noteOccupation(newCoordinates.x, newCoordinates.y);
+  newBranch.x = newCoordinates.x;
+  newBranch.y = newCoordinates.y;
+  return newBranch;
+  // }
 };
 
 const growAllBranches = (branches) => {
