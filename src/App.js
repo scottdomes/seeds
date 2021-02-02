@@ -15,7 +15,7 @@ const areBranchesAbove = (x, y) => {
   return Boolean(OCCUPIED_X.find((coordinate) => coordinate > y));
 };
 
-const directionsTowardTheSun = (x, y) => {
+const findDirectionsTowardTheSun = (x, y) => {
   const canGoUp = areBranchesAbove(x, y);
   const canGoRight = areBranchesAbove(x + 1, y);
   const canGoLeft = areBranchesAbove(x - 1, y);
@@ -39,46 +39,41 @@ const directionsTowardTheSun = (x, y) => {
   return availableDirections;
 };
 
+const findUnoccupiedDirections = (x, y, directions) => {
+  return directions.filter((direction) => {
+    return !isSpaceOccupied(findNewCoordinates(x, y, direction));
+  });
+};
+
 const pickRandomItemFromArray = (array) => {
   return array[randomIntFromInterval(0, array.length - 1)];
 };
 
-const findClosestDirections = (direction) => {
-  const keys = Object.keys(DIRECTIONS);
-  const index = keys.findIndex((key) => key === direction);
-  if (index === keys.length - 1) {
-    return [keys[index - 1], keys[index], keys[0]];
+export const pickDirection = (x, y) => {
+  const availableDirectionsFromSun = findDirectionsTowardTheSun(x, y);
+
+  if (availableDirectionsFromSun.length === 0) {
+    return null;
   }
 
-  if (index === 0) {
-    return [keys[keys.length - 1], keys[index], keys[1]];
-  }
-
-  return [keys[index - 1], keys[index], keys[index + 1]];
-};
-
-const pickDirection = (x, y, direction) => {
-  const bestChoices = findClosestDirections(direction);
-
-  console.log(bestChoices, direction)
-
-  const availableBestChoices = bestChoices.filter((choice) =>
-    !areBranchesAbove(findNewCoordinates(x, y, choice))
+  const unoccupiedDirections = findUnoccupiedDirections(
+    x,
+    y,
+    availableDirectionsFromSun
   );
 
+  if (unoccupiedDirections.length === 0) {
+    return null;
+  }
 
-  if (availableBestChoices.length > 0) {
-    return pickRandomItemFromArray(availableBestChoices);
+  const diagonalDirections = unoccupiedDirections.filter(
+    (direction) => direction === "UPLEFT" || direction === "UPRIGHT"
+  );
+
+  if (diagonalDirections.length > 0) {
+    return pickRandomItemFromArray(diagonalDirections);
   } else {
-    const remainingChoices = Object.keys(DIRECTIONS).filter(
-      (key) => !Boolean(bestChoices.find((choice) => choice === key))
-    );
-
-    if (remainingChoices.length > 0) {
-      return pickRandomItemFromArray(remainingChoices);
-    }
-
-    return false;
+    return pickRandomItemFromArray(unoccupiedDirections);
   }
 };
 
@@ -108,17 +103,6 @@ const pickANewDirection = (oldDirectionKey) => {
   }
 };
 
-const randomizeDirection = (oldDirectionKey) => {
-  const keys = Object.keys(DIRECTIONS);
-  const index = keys.findIndex((key) => key === oldDirectionKey);
-  const variance = randomIntFromInterval(-1, 1);
-  const newIndex = index + variance;
-  if (newIndex === -1 || newIndex === keys.length) {
-    return keys[keys.length - 1];
-  }
-  return keys[index + variance];
-};
-
 const findNewCoordinates = (x, y, direction) => {
   return {
     x: x + DIRECTIONS[direction][0],
@@ -129,7 +113,7 @@ const findNewCoordinates = (x, y, direction) => {
 const grow = (branch) => {
   const newBranch = { ...branch };
 
-  newBranch.direction = pickDirection(branch.x, branch.y, branch.direction);
+  newBranch.direction = pickDirection(branch.x, branch.y);
 
   if (!newBranch.direction) {
     return null;
@@ -141,13 +125,12 @@ const grow = (branch) => {
     newBranch.direction
   );
 
-  // const isOccupied = checkForOccupation(newCoordinates.x, newCoordinates.y);
+  const isOccupied = isSpaceOccupied(newCoordinates.x, newCoordinates.y);
 
   // if (isOccupied) {
-  //   newBranch.attempts = branch.attempts + 1;
-  //   newBranch.hitObstacle = true;
-  //   return grow(newBranch);
-  // } else {
+  //   return null;
+  // }
+
   noteOccupation(newCoordinates.x, newCoordinates.y);
   newBranch.x = newCoordinates.x;
   newBranch.y = newCoordinates.y;
@@ -235,7 +218,7 @@ const drawBranches = (canvas, branches) => {
   });
 };
 
-const checkForOccupation = (x, y) => {
+const isSpaceOccupied = (x, y) => {
   return OCCUPIED_X[x] && OCCUPIED_X[x].includes(y);
 };
 
@@ -267,39 +250,6 @@ const Canvas = (props) => {
 
   const startGame = (canvas) => {
     interval = setInterval(() => {
-      // const newBranches = [];
-
-      // branches.forEach((branch) => {
-      //   if (shouldBranch()) {
-      //     const newBranch = calculateNextX(calculateNextY(branch));
-      //     newBranch.color = getRandomColor("#964B00");
-
-      //     const isOccupied = checkForOccupation(newBranch.x, newBranch.y);
-      //     if (!isOccupied) {
-      //       noteOccupation(newBranch.x, newBranch.y);
-      //       newBranches.push(newBranch);
-      //     } else {
-      //       console.log("COLLISION");
-      //     }
-      //   }
-
-      //   const newX = branch.x + growthAmount();
-      //   const newY = branch.y + SEED_SIZE;
-
-      //   const isOccupied = checkForOccupation(newX, newY);
-
-      //   if (!isOccupied) {
-      //     noteOccupation(newX, newY);
-      //     newBranches.push({
-      //       startX: branch.startX,
-      //       y: branch.y + SEED_SIZE,
-      //       x: branch.x + growthAmount(),
-      //       xDirection: randomDirection(),
-      //       yDirection: randomDirection(),
-      //       color: branch.color,
-      //     });
-      //   }
-      // });
       const newBranches = growAllBranches(branches);
 
       drawBranches(canvas, newBranches);
