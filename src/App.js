@@ -223,6 +223,7 @@ const createSeeds = () => {
         color: "#964B00",
         height: 0,
         width: SEED_SIZE,
+        branches: [],
       };
     });
 };
@@ -275,7 +276,7 @@ const Canvas = (props) => {
 
       trees = growAllTrees(trees);
       drawTrees(trees, canvas);
-    }, 100);
+    }, 200);
   };
 
   useEffect(() => {
